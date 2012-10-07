@@ -413,8 +413,8 @@ def genroute(length,pname):
         translate = {"W":"willpower","F":"fear","G":"gems"}
         return (translate[attrib],int(diff))
     for i in xrange(1,len(cutoffs)):
-        indices = range(round(cutoffs[i-1]*length),
-                        round(cutoffs[i]*length))
+        indices = range(int(round(cutoffs[i-1]*length)),
+                        int(round(cutoffs[i]*length)))
         logger.debug(indices)
         #slice = route[cutoffs[i-1]*length:cutoffs[i]*length]
         random.shuffle(indices)
@@ -429,10 +429,7 @@ def genroute(length,pname):
             if numblocks == len(indices):
                 break
     return [Block()] + route + [EndBlock()]
-
-def printroute(route):
-    print [(b.__dict__.get("attrib"," "),b.__dict__.get("diff",0)) for b in route]
-
+q
 def setup():
     map = open("map").read().split("\n")
     ponyxy = startend(map)
