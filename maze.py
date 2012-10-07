@@ -1,11 +1,6 @@
 import logger
 import random
-
-MAXFEAR = 4
-PONYNAMES = ["TS","RD","AJ","RA","FS","PP"]
-GEMCOST = 5
-GROUND = ".123456B"
-DEBUG = True
+from const import MAXFEAR,PONYNAMES,GEMCOST,GROUND,DEBUG
 
 class Grid(list):
     def __getitem__(self,index):
