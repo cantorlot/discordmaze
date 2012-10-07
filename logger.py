@@ -8,6 +8,7 @@ def log(*s):
 """
 
 def debug(*s):
+    if not DEBUG: return
     print "DEBUG:",
     for i in s:
         print i,

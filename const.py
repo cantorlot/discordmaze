@@ -2,7 +2,7 @@ MAXFEAR = 3
 PONYNAMES = ["TS","RD","AJ","RA","FS","PP"]
 GEMCOST = 5
 GROUND = ".123456B"
-DEBUG = True
+DEBUG = False
 GLOBALFEAR = 5
 
 LONGPONYNAMES = ["Twilight","Rainbow Dash","Applejack","Rarity","Fluttershy","Pinkie Pie","<Pony>"]
