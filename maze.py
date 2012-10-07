@@ -40,7 +40,7 @@ class SimpleBlock(Block):
 
     def land(self,pony):
         pony.__dict__[self.attrib] += self.diff
-        logger.log(("land",pony.name,self.attrib,self.diff))
+        logger.log("land",pony.name,self.attrib,self.diff)
 
     def __repr__(self):
         #return self.attrib[0]+"+"*(self.diff>0)+str(self.diff)
@@ -62,10 +62,10 @@ class TrapBlock(Block):
         if self.active:
             pony.__dict__[self.attrib] += self.diff
             self.active = False
-            logger.log(("trigger","trap"))
+            logger.log("trigger","trap 1",pony.name)
         else:
             pony.__dict__[self.attrib] += 2*self.diff
-            logger.log(("trigger","obvious trap"))
+            logger.log("trigger","trap 2",pony.name)
 
     def __repr__(self):
         if not self.active:
@@ -121,10 +121,10 @@ class Pony(object):
             logger.log("limit","fear",self.name)
             self.fear = 0
         if self.willpower < 0:
-            logger.log("limit","willpower 0",self.name)
+            logger.log("limit","willpower",self.name)
             self.willpower = 0
         if self.willpower > 3:
-            logger.log("limit","willpower 3",self.name)
+            logger.log("upperlimit","willpower",self.name)
             pony.willpower = 3
         if DEBUG:
             return False
@@ -193,6 +193,8 @@ class Game(object):
             return
         route = self.routes[ponyname]
         routexy = self.routexy[ponyname]
+        if ponyname == "FS":
+            self.timers["flutter fear"] = 3+self.ponies["FS"].willpower
         for i in xrange(1,self.dice+1):
             if i == self.dice:
                 logger.debug("landing",ponyname,routexy[pony.routeloc+i])
@@ -200,7 +202,7 @@ class Game(object):
                 #Hack
                 if not self.ponies["TS"].discorded and self.ponies["TS"].willpower >= 3:
                     if route[pony.routeloc+i].attrib == "willpower" and route[pony.routeloc+i].diff == 1:
-                        logger.log("event","special","TS")
+                        logger.log("event","special","TS",pony.name)
                         pony.willpower += 1
                 pony.routeloc += i
                 break
@@ -225,7 +227,7 @@ class Game(object):
                 self.timereffect(tname)
 
     def timereffect(self,tname):
-        logger.log("effect",tname)
+        logger.debug("effect",tname)
         if tname == "global fear":
             logger.debug("Triggering global fear")
             for pony in self.ponies.values():
@@ -236,6 +238,7 @@ class Game(object):
             pony = self.ponies["RA"]
             if not pony.discorded:
                 pony.gems += 1+pony.willpower
+                logger.log("effect","rarity",1+pony.willpower)
                 self.timers[tname] = 1
         elif tname == "flutter fear":
             pony = self.ponies["FS"]
@@ -265,9 +268,9 @@ class Game(object):
             self.ponies["RA"].gems -= GEMCOST
             self.ponies[ponyname].fear -= 1
             self.ponies[ponyname].checkfear()
-            logger.log(("calm",ponyname))
+            logger.log("calm",ponyname)
         else:
-            logger.log(("error","not enough gems"))
+            logger.log("error","not enough gems")
 
     def parsecommand(self,s):
         command,param = s.split(" ")
@@ -287,7 +290,7 @@ class Game(object):
             self.calm(param)
 
     def ponyarrive(self,pony):
-        logger.log("event","arrived",pony)
+        logger.log("event","arrived",pony.name)
         pony.arrived = True
         self.arrived.append(pony)
 
@@ -361,7 +364,7 @@ def genroute(length,pname):
     if pname == "FS":
         blockdistrib[0] = [("W +1",3),
                            ("F +1",2),
-                           ("F -2",2)]
+                           ("F -1",2)]
     elif pname == "RA":
         blockdistrib[2] = [("G +10",3),
                            ("F +2",5),
