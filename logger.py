@@ -40,6 +40,11 @@ flavtext["<Pony>"]["trap 2"] = """<Pony> falls into a trap in plain sight. How c
 
 Fear +2
 """
+flavtext["<Pony>"]["win"] = """<Pony> is too scared to move. Discord dies of boredom. Literally. You've won. Game over."""
+flavtext["<Pony>"]["lose"] = """As the last pony is turned from her element, the labyrinth begin to crumble. You lose.
+
+Have the ponies bought Celestia enough time? Could she complete her plan while the ponies entertained him?
+"""
 
 def log(*s):
     if s == ("event","changeroute","AJ"):
@@ -71,6 +76,9 @@ def log(*s):
         print "%s's %s cannot reach above 3 and is set to 3." % (SHORTTOLONG[s[2]],s[1])
     elif s[:2] == ("error","arrived"):
         print "%s arrived at her destination and cannot move further." % SHORTTOLONG[s[2]]
+    #elif s[:2] == ("gameover","win"):
+    elif s[0] == "gameover":
+        print flavtext["<Pony>"][s[1]].replace("<Pony>",SHORTTOLONG[s[2]])
     else:
         for i in s:
             print i,

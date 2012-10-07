@@ -69,7 +69,7 @@ class TrapBlock(Block):
 
     def __repr__(self):
         if not self.active:
-            return "tt"
+            return "TT"
         else:
             return "tt"
 
@@ -161,6 +161,13 @@ class Game(object):
         self.routes["TS"][15] = trapblock
         self.routes["RA"][15] = trapblock
         self.routes["PP"][15] = trapblock
+
+        trapblock = TrapBlock("fear",1)
+        for name in PONYNAMES:
+            if name not in ["RD","AJ"]:
+                self.routes[name][-11] = trapblock
+        self.routes["RD"][-5] = trapblock
+        self.routes["AJ"][-25] = trapblock
         rockslideblock = RockslideBlock()
         self.routes["RA"][-14] = rockslideblock
         rockslideblock.trigger = self.boulderfall
@@ -207,18 +214,21 @@ class Game(object):
                 pony.routeloc += i
                 break
             logger.debug("moving",ponyname,routexy[pony.routeloc+i])
-            if route[pony.routeloc+i].step(pony):
+            #if route[pony.routeloc+i].step(pony):
+            if self.grid[routexy[pony.routeloc+i]].step(pony):
                 pony.routeloc += i
                 break
         pony.xy = routexy[pony.routeloc]
         logger.debug("routeloc",pony.routeloc,self.dice)
-        self.endturn()
+        if not self.gameover:
+            self.endturn()
         if not self.gameover:
             self.nextturn()
 
     def endturn(self):
         for pony in self.ponies.values():
             if pony.checkfear():
+                logger.log("gameover","win",pony.name)
                 self.gameover = True
                 return
         for tname in self.timers:
@@ -293,6 +303,9 @@ class Game(object):
         logger.log("event","arrived",pony.name)
         pony.arrived = True
         self.arrived.append(pony)
+        if len(self.arrived) == 6:
+            self.gameover = True
+            logger.log("gameover","lose",pony.name)
 
     def boulderfall(self):
         pony = self.ponies["AJ"]
