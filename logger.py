@@ -51,19 +51,25 @@ Type "i" to read the full introduction and instructions.
 Type "m " followed by the name of a pony to move that pony.
 Type "c " followed by the name of use gems to calm that pony.
 Pony (shorthand) names are """+" ".join(PONYNAMES)
-flavtext["instruction"]["full"] = ""
+flavtext["instruction"]["full"] = open("instructions").read()
 
 def log(*s):
     if s == ("event","changeroute","AJ"):
-        print "Rarity scarcely avoids a rock slide! That rocks lands elsewhere in the labyrinth."
+        print "Rarity scarcely avoids a rock slide! That rocks lands elsewhere in the labyrinth. They now block Applejack's path so she must find a way around them."
     elif s[:3] == ("event","special","TS"):
         print "Twilight boosts %s's Willpower by 1 more!" % SHORTTOLONG[s[3]]
+    elif s[:3] == ("event","special","FS"):
+        print "Fluttershy is scared but doesn't want to lose any more friends. Her Willpower increases by 1."
     elif s[:2] == ("event","arrived"):
         print "%s arrives as a strange place in the maze. It feels like this was all part of Discord's plan." % SHORTTOLONG[s[2]]
     elif s[:2] == ("event","discord"):
         print "Discord reduced %s's Willpower by 1!" % SHORTTOLONG[s[2]]
     elif s[:2] == ("event","discorded"):
         print "Discord turned %s against her own element!" % SHORTTOLONG[s[2]]
+    elif s[:3] == ("effect","flutter fear"):
+        print """Fluttershy is being a scaredy pony. Its not her fault.
+
+Fear +1"""
     elif s[:2] == ("effect","rarity"):
         print "Rarity finds %s gem(s)." % s[2]
     elif s[:2] == ("effect","global fear"):

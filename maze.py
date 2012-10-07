@@ -123,9 +123,9 @@ class Pony(object):
         if self.willpower < 0:
             logger.log("limit","willpower",self.name)
             self.willpower = 0
-        if self.willpower > 3:
-            logger.log("upperlimit","willpower",self.name)
-            pony.willpower = 3
+        #if self.willpower > 3:
+        #    logger.log("upperlimit","willpower",self.name)
+        #    pony.willpower = 3
         if DEBUG:
             return False
         else:
@@ -219,10 +219,10 @@ class Game(object):
                 break
         pony.xy = routexy[pony.routeloc]
         logger.debug("routeloc",pony.routeloc,self.dice)
+        if ponyname == "FS":
+            self.timers["flutter fear"] = 4+self.ponies["FS"].willpower
         if not self.gameover:
             self.endturn()
-        if ponyname == "FS":
-            self.timers["flutter fear"] = 3+self.ponies["FS"].willpower
         if not self.gameover:
             self.nextturn()
 
@@ -240,7 +240,7 @@ class Game(object):
     def timereffect(self,tname):
         logger.debug("effect",tname)
         del self.timers[tname]
-        if tname in ["global fear","pinkie song"]:
+        if tname in ["global fear","pinkie song","flutter fear"]:
             logger.log("effect",tname)
         if tname == "global fear":
             logger.debug("Triggering global fear")
@@ -272,6 +272,12 @@ class Game(object):
                     if pony.willpower == 0:
                         pony.discorded = True
                         logger.log("event","discorded",pony.name)
+                        if not self.ponies["FS"].discorded:
+                            logger.log("event","special","FS")
+                            self.ponies["FS"].willpower += 1
+                            if not self.ponies["TS"].discorded and self.ponies["TS"].willpower >= 3:
+                                logger.log("event","special","TS")
+                                self.ponies["FS"].willpower += 1
                     else:
                         pony.willpower -= 1
                         logger.log("event","discord",pony.name)
@@ -288,6 +294,9 @@ class Game(object):
             logger.log("error","not enough gems")
 
     def parsecommand(self,s):
+        if s in ["i","I"]:
+            logger.log("instruction","full")
+            return
         command,param = s.upper().split(" ")
         if command == "M":
             try:
@@ -448,7 +457,7 @@ def main():
     while not g.gameover:
         print repr(g)
         logger.log("instruction","command")
-        cmd = raw_input()
+        cmd = raw_input("> ")
         g.parsecommand(cmd)
 
 if __name__=="__main__":

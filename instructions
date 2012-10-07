@@ -1,0 +1,64 @@
+Discord's game
+==============
+
+Welcome go the palace gardens! This labyrinth is now home to Discord's game. No wings, no magic and a few more rules.
+
+Every turn a dice is thrown and a chosen ponies moves forwards by that many steps. The dice takes value between 1 and the ponies' maximum speed. Try to get everypony to the end. The Elements of Harmony are there! Probably.
+
+Try to get there fast. In the labyrinth, every 5 turns, everypony's Fear increases by 1. If at the end of a turn, Fear is 3 for anypony, the game ends.
+
+Start
+=====
+Everypony starts with a Fear and Willpower of 0.
+
+End of the maze
+===============
+At their final destination, every turn, Discord reduces the pony's Willpower by 1. When their Willpower would be reduced below 0, the pony is instead "discorded" and their special abilities no longer trigger. A "discorded" pony no longer gains Fear. Discord can only affect one pony at a time (and affects ponies in the order they arrive at their final destination).
+
+Pony characteristic
+===================
+Every 6-Willpower turns, Pinkie Pie's singing reduces the Fear of all ponies by 1.
+
+If Fluttershy doesn't move for 3+Willpower turns, her Fear increases by 1.
+
+When another pony is "discorded", Fluttershy's Willpower increases by 1.
+
+Applejack adds 1+Willpower to the ponies' maximum speed.
+
+Rainbow Dash adds 1+Willpower to the ponies' maximum speed.
+
+Rarity earns 1+Willpower gems each turn.
+
+Any pony can buy a calming effect (-1 Fear) for 5 gems. A pony cannot be calmed below 0 Fear.
+
+If Twilight has Willpower 3, other ponies gain 2 Willpower instead of 1.
+
+Turn order
+==========
+Ponies move then effects trigger and finally these limits on Willpower and Fear apply.
+
+Limits
+======
+If at the end of a turn, Willpower is below 0, it is set to 0.
+If at the end of a turn, Fear is below 0, it is set to 0.
+If at the end of a turn, Fear is 3 or more, the game ends.
+
+Map
+===
+
+You will find these symbols and a few more on the map.
+
+||  Wall
+..  Empty
+EE  End goal
+w1  Willpower +1
+f-  Fear -1
+w-  Willpower -1
+f1  Fear +1
+f2  Fear +2
+g1  Gems +10
+tt  Unactivated trap (Fear +1)
+TT  Activated trap (Fear +2)
+TS RD AJ RA FS PP  ponies
+
+
