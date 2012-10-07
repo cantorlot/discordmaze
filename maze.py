@@ -144,10 +144,10 @@ class Game(object):
         self.routes = routes#dict((name,[Block() for i in xrange(len(self.routexy[name]))]) for name in PONYNAMES)
         self.ponies["RA"].gems = 0
         self.timers = {}
-        self.setupgame()
+        self.setupgame(map)
         self.nextturn()
 
-    def setupgame(self):
+    def setupgame(self,map):
         self.arrived = []
         for route in self.routes.values():
             route[-1].arrive = self.ponyarrive
@@ -182,7 +182,7 @@ class Game(object):
         self.grid[xy].arrive = self.ponyarrive
 
     def maxdice(self):
-        m = 3
+        m = 6
         if not self.ponies["RD"].discorded:
             m += 1 + self.ponies["RD"].willpower
         if not self.ponies["AJ"].discorded:
@@ -200,8 +200,6 @@ class Game(object):
             return
         route = self.routes[ponyname]
         routexy = self.routexy[ponyname]
-        if ponyname == "FS":
-            self.timers["flutter fear"] = 3+self.ponies["FS"].willpower
         for i in xrange(1,self.dice+1):
             if i == self.dice:
                 logger.debug("landing",ponyname,routexy[pony.routeloc+i])
@@ -222,22 +220,27 @@ class Game(object):
         logger.debug("routeloc",pony.routeloc,self.dice)
         if not self.gameover:
             self.endturn()
+        if ponyname == "FS":
+            self.timers["flutter fear"] = 3+self.ponies["FS"].willpower
         if not self.gameover:
             self.nextturn()
 
     def endturn(self):
+        for tname in self.timers.keys():
+            self.timers[tname] -= 1
+            if self.timers[tname] == 0:
+                self.timereffect(tname)
         for pony in self.ponies.values():
             if pony.checkfear():
                 logger.log("gameover","win",pony.name)
                 self.gameover = True
                 return
-        for tname in self.timers:
-            self.timers[tname] -= 1
-            if self.timers[tname] == 0:
-                self.timereffect(tname)
 
     def timereffect(self,tname):
         logger.debug("effect",tname)
+        del self.timers[tname]
+        if tname in ["global fear","pinkie song"]:
+            logger.log("effect",tname)
         if tname == "global fear":
             logger.debug("Triggering global fear")
             for pony in self.ponies.values():
@@ -254,7 +257,7 @@ class Game(object):
             pony = self.ponies["FS"]
             if not pony.discorded:
                 pony.fear += 1
-                self.timers[tname] = 3+pony.willpower            
+                self.timers[tname] = 3+pony.willpower
         elif tname == "pinkie song":
             pony = self.ponies["PP"]
             if not pony.discorded:
@@ -264,12 +267,13 @@ class Game(object):
                 self.timers[tname] = 6-pony.willpower
         elif tname == "discord":
             for pony in self.arrived:
-                if pony.willpower > 0:
-                    pony.willpower -= 1
-                    logger.log("event","discord",pony.name)
+                if not pony.discorded:
                     if pony.willpower == 0:
                         pony.discorded = True
                         logger.log("event","discorded",pony.name)
+                    else:
+                        pony.willpower -= 1
+                        logger.log("event","discord",pony.name)
                     break
             self.timers[tname] = 1
 
@@ -283,15 +287,15 @@ class Game(object):
             logger.log("error","not enough gems")
 
     def parsecommand(self,s):
-        command,param = s.split(" ")
-        if command == "m":
+        command,param = s.upper().split(" ")
+        if command == "M":
             try:
                 index = int(param)
                 param = PONYNAMES[int(param)]
             except:
                 pass
             self.move(param)
-        elif command == "c":
+        elif command == "C":
             try:
                 index = int(param)
                 param = PONYNAMES[int(param)]
@@ -324,8 +328,8 @@ class Game(object):
             row[3*xy[1]:3*xy[1]+len(name)] = name
             gridrepr[xy[0]] = "".join(row)
         gridpart = "\n".join(gridrepr)
-        ponypart = repr(self.ponies)
-        effectpart = repr(self.timers)
+        ponypart = "Ponies:\n "+"\n ".join((map(repr,self.ponies.values())))
+        effectpart = "Active effects: turns before activation\n"+"\n".join(map(lambda x:" "+x[0]+":"+str(x[1]),self.timers.items()))
         statspart = "dice:"+repr(self.dice)+" gems:"+repr(self.ponies["RA"].gems)+" maxspeed:"+repr(self.maxdice())
         return "\n".join([gridpart,ponypart,effectpart,statspart])
 
@@ -408,7 +412,7 @@ def genroute(length,pname):
 def printroute(route):
     print [(b.__dict__.get("attrib"," "),b.__dict__.get("diff",0)) for b in route]
 
-if __name__=="__main__":
+def setup():
     map = open("map").read().split("\n")
     ponyxy = startend(map)
     routexy = dict((PONYNAMES[i],bfs(map,xy)) for i,xy in enumerate(ponyxy))
@@ -424,4 +428,16 @@ if __name__=="__main__":
                     for name in PONYNAMES])
     routexy["AJ"] = ponies["AJ"].routenoboulder
     g=Game(map,ponies,routexy,routes,ponyxy)
-    #g.move(PONYNAMES[0])
+    return g
+
+g = setup()
+
+def main():
+    while not g.gameover:
+        print repr(g)
+        logger.log("instruction","command")
+        cmd = raw_input()
+        g.parsecommand(cmd)
+
+if __name__=="__main__":
+    main()

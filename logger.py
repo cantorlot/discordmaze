@@ -1,4 +1,4 @@
-from const import DEBUG, LONGPONYNAMES, LONGBLOCKNAMES, SHORTTOLONG
+from const import DEBUG, LONGPONYNAMES, LONGBLOCKNAMES, SHORTTOLONG, PONYNAMES, GEMCOST
 import random
 """
 def log(*s):
@@ -45,6 +45,13 @@ flavtext["<Pony>"]["lose"] = """As the last pony is turned from her element, the
 
 Have the ponies bought Celestia enough time? Could she complete her plan while the ponies entertained him?
 """
+flavtext["instruction"] = {}
+flavtext["instruction"]["command"]="""
+Type "i" to read the full introduction and instructions.
+Type "m " followed by the name of a pony to move that pony.
+Type "c " followed by the name of use gems to calm that pony.
+Pony (shorthand) names are """+" ".join(PONYNAMES)
+flavtext["instruction"]["full"] = ""
 
 def log(*s):
     if s == ("event","changeroute","AJ"):
@@ -56,9 +63,13 @@ def log(*s):
     elif s[:2] == ("event","discord"):
         print "Discord reduced %s's Willpower by 1!" % SHORTTOLONG[s[2]]
     elif s[:2] == ("event","discorded"):
-        print "Discord turned %s against their own element!" % SHORTTOLONG[s[2]]
+        print "Discord turned %s against her own element!" % SHORTTOLONG[s[2]]
     elif s[:2] == ("effect","rarity"):
         print "Rarity finds %s gem(s)." % s[2]
+    elif s[:2] == ("effect","global fear"):
+        print "The longer they stay, the more unpredictable the labyrinth gets.\n\nFear +1 to all ponies."
+    elif s[:2] == ("effect","pinkie song"):
+        print "Pinkie Pie sings a silly song. It echoes throughout the labyrinth.\n\nFear -1 to all ponies."
     elif s[0] == "calm":
         print "Shiny gems calms %s." % SHORTTOLONG[s[1]]
     elif s[0] == "land":
@@ -66,7 +77,7 @@ def log(*s):
         ename = s[2].capitalize()+" "+"+"*(s[3]>0)+str(s[3])
         allft = flavtext[pname][ename] + flavtext["<Pony>"][ename]
         if DEBUG:
-            print allft
+            print "DEBUG:",allft
         print random.choice(allft).replace("<Pony>",pname)
     elif s[0] == "trigger":
         print flavtext["<Pony>"][s[1]].replace("<Pony>",SHORTTOLONG[s[2]])
@@ -76,9 +87,15 @@ def log(*s):
         print "%s's %s cannot reach above 3 and is set to 3." % (SHORTTOLONG[s[2]],s[1])
     elif s[:2] == ("error","arrived"):
         print "%s arrived at her destination and cannot move further." % SHORTTOLONG[s[2]]
+    elif s == ("error","not enough gems"):
+        print "You do not have enough gems (costs %s gems)" % GEMCOST
     #elif s[:2] == ("gameover","win"):
     elif s[0] == "gameover":
         print flavtext["<Pony>"][s[1]].replace("<Pony>",SHORTTOLONG[s[2]])
+    elif s[:2] == ("instruction","command"):
+        print flavtext["instruction"]["command"]
+    elif s[:2] == ("instruction","full"):
+        print flavtext["instruction"]["full"]
     else:
         for i in s:
             print i,
