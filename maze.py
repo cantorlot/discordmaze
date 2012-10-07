@@ -1,6 +1,6 @@
 import logger
 import random
-from const import MAXFEAR,PONYNAMES,GEMCOST,GROUND,DEBUG
+from const import MAXFEAR,PONYNAMES,GEMCOST,GROUND,DEBUG,GLOBALFEAR
 
 class Grid(list):
     def __getitem__(self,index):
@@ -132,7 +132,8 @@ class Pony(object):
             return self.fear >= MAXFEAR
 
     def __repr__(self):
-        return "N:%s F:%s W:%s L:%s xy:%s"%(self.name,self.fear,self.willpower,self.routeloc,self.xy)
+        return "N:%s F:%s W:%s"%(self.name,self.fear,self.willpower)
+        #return "N:%s F:%s W:%s L:%s xy:%s"%(self.name,self.fear,self.willpower,self.routeloc,self.xy)
 
 class Game(object):
     def __init__(self,map,ponies,routexy={},routes=[],ponyxy=[]):
@@ -151,7 +152,7 @@ class Game(object):
         self.arrived = []
         for route in self.routes.values():
             route[-1].arrive = self.ponyarrive
-        self.timers["global fear"] = 5
+        self.timers["global fear"] = GLOBALFEAR
         self.timers["discord"] = 1
         self.timers["rarity gems"] = 1
         self.timers["flutter fear"] = 3+self.ponies["FS"].willpower            
@@ -182,7 +183,7 @@ class Game(object):
         self.grid[xy].arrive = self.ponyarrive
 
     def maxdice(self):
-        m = 6
+        m = 5
         if not self.ponies["RD"].discorded:
             m += 1 + self.ponies["RD"].willpower
         if not self.ponies["AJ"].discorded:
@@ -246,7 +247,7 @@ class Game(object):
             for pony in self.ponies.values():
                 if not pony.discorded:
                     pony.fear += 1
-            self.timers["global fear"] = 5
+            self.timers["global fear"] = GLOBALFEAR
         elif tname == "rarity gems":
             pony = self.ponies["RA"]
             if not pony.discorded:
@@ -329,9 +330,20 @@ class Game(object):
             gridrepr[xy[0]] = "".join(row)
         gridpart = "\n".join(gridrepr)
         ponypart = "Ponies:\n "+"\n ".join((map(repr,self.ponies.values())))
-        effectpart = "Active effects: turns before activation\n"+"\n".join(map(lambda x:" "+x[0]+":"+str(x[1]),self.timers.items()))
+        #ponypart = "Ponies:\n "+", ".join((map(repr,self.ponies.values())))
+        timers = [(k,v) for k,v in self.timers.items() if k not in ["rarity gems","discord"]]
+        effectpart = "Active effects: turns before activation\n"+"\n".join(map(lambda x:" "+x[0]+":"+str(x[1]),timers))
+        ponylines = ponypart.split("\n")
+        effectlines = effectpart.split("\n")
+        numlines = max(len(ponylines),len(effectlines))
+        ponyeffectpart = ""
+        for i in xrange(numlines):
+            ponyline = ponylines[i] if i<len(ponylines) else ""
+            effectline = effectlines[i] if i<len(effectlines) else ""
+            ponyeffectpart += ponyline.ljust(20)+ effectline+"\n"
         statspart = "dice:"+repr(self.dice)+" gems:"+repr(self.ponies["RA"].gems)+" maxspeed:"+repr(self.maxdice())
-        return "\n".join([gridpart,ponypart,effectpart,statspart])
+        #return "\n".join([gridpart,ponypart,effectpart,statspart])
+        return "\n".join([gridpart,ponyeffectpart,statspart])
 
 def startend(mapstr):
     ponyxy = [[] for p in xrange(6)]

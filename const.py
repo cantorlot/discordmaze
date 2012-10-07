@@ -3,6 +3,7 @@ PONYNAMES = ["TS","RD","AJ","RA","FS","PP"]
 GEMCOST = 5
 GROUND = ".123456B"
 DEBUG = True
+GLOBALFEAR = 5
 
 LONGPONYNAMES = ["Twilight","Rainbow Dash","Applejack","Rarity","Fluttershy","Pinkie Pie","<Pony>"]
 LONGBLOCKNAMES = ["Willpower +1","Willpower -1","Fear +1","Fear +2","Fear -1","Gems +10"]
