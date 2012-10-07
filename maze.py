@@ -5,6 +5,7 @@ MAXFEAR = 4
 PONYNAMES = ["TS","RD","AJ","RA","FS","PP"]
 GEMCOST = 5
 GROUND = ".123456B"
+DEBUG = True
 
 class Grid(list):
     def __getitem__(self,index):
@@ -78,9 +79,7 @@ class TrapBlock(Block):
             return "tt"
 
 class RockslideBlock(Block):
-    def __init__(self,attrib,diff,otherblocks):
-        self.attrib = attrib
-        self.diff = diff
+    def __init__(self):
         self.active = True
 
     def step(self,pony):
@@ -91,6 +90,9 @@ class RockslideBlock(Block):
 
     def land(self,pony):
         self.step(pony)
+
+    def __repr__(self):
+        return "Rf"
 
 class BoulderBlock(Block):
     def __repr__(self):
@@ -120,11 +122,19 @@ class Pony(object):
         #    self.fear += 1
 
     def checkfear(self):
-        if self.fear <= 0:
+        if self.fear < 0:
+            logger.log("limit","fear",self.name)
             self.fear = 0
-        if self.willpower <= 0:
+        if self.willpower < 0:
+            logger.log("limit","willpower 0",self.name)
             self.willpower = 0
-        return self.fear >= MAXFEAR
+        if self.willpower > 3:
+            logger.log("limit","willpower 3",self.name)
+            pony.willpower = 3
+        if DEBUG:
+            return False
+        else:
+            return self.fear >= MAXFEAR
 
     def __repr__(self):
         return "N:%s F:%s W:%s L:%s xy:%s"%(self.name,self.fear,self.willpower,self.routeloc,self.xy)
@@ -153,9 +163,13 @@ class Game(object):
         self.timers["pinkie song"] = 6-self.ponies["PP"].willpower            
 
         trapblock = TrapBlock("fear",1)
-        self.routes["TS"][10] = trapblock
-        self.routes["RA"][10] = trapblock
-        self.routes["PP"][10] = trapblock
+        self.routes["TS"][15] = trapblock
+        self.routes["RA"][15] = trapblock
+        self.routes["PP"][15] = trapblock
+        rockslideblock = RockslideBlock()
+        self.routes["RA"][-14] = rockslideblock
+        rockslideblock.trigger = self.boulderfall
+
         grid = [[Wall() for cell in row] for row in map]
         self.grid = Grid(grid)
         for name in PONYNAMES:
@@ -188,6 +202,11 @@ class Game(object):
             if i == self.dice:
                 logger.debug("landing",ponyname,routexy[pony.routeloc+i])
                 route[pony.routeloc+i].land(pony)
+                #Hack
+                if not self.ponies["TS"].discorded and self.ponies["TS"].willpower >= 3:
+                    if route[pony.routeloc+i].attrib == "willpower" and route[pony.routeloc+i].diff == 1:
+                        logger.log("event","special","TS")
+                        pony.willpower += 1
                 pony.routeloc += i
                 break
             logger.debug("moving",ponyname,routexy[pony.routeloc+i])
