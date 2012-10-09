@@ -429,7 +429,7 @@ def genroute(length,pname):
             if numblocks == len(indices):
                 break
     return [Block()] + route + [EndBlock()]
-q
+
 def setup():
     map = open("map").read().split("\n")
     ponyxy = startend(map)
