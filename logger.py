@@ -1,5 +1,10 @@
 from const import DEBUG, LONGPONYNAMES, LONGBLOCKNAMES, SHORTTOLONG, PONYNAMES, GEMCOST
 import random
+import os
+
+def abspath(fn):
+    return os.path.join(os.path.dirname(__file__), fn)
+
 """
 def log(*s):
     for i in s:
@@ -15,7 +20,7 @@ def debug(*s):
     print
 
 def getflavtexts():
-    rawflavtext = open("flavtext").read().split("===\n")
+    rawflavtext = open(abspath("flavtext")).read().split("===\n")
     flavtext = {}
     for pname in LONGPONYNAMES:
         flavtext[pname] = {}
@@ -26,7 +31,7 @@ def getflavtexts():
             if pname in s:
                 for bname in LONGBLOCKNAMES:
                     if bname in s:
-                        flavtext[pname][bname].append(s)
+                        flavtext[pname][bname].append(s.strip())
                         return
     map(parseflavtext,rawflavtext)
     return flavtext
@@ -50,13 +55,14 @@ flavtext["instruction"] = {}
 flavtext["instruction"]["command"]="""
 Type "i" to read the full introduction and instructions.
 Type "m " followed by the name of a pony to move that pony.
-Type "c " followed by the name of use gems to calm that pony.
+Type "c " followed by the name of a pony to use gems to calm that pony.
 Pony (shorthand) names are """+" ".join(PONYNAMES)
-flavtext["instruction"]["full"] = open("instructions").read()
+flavtext["instruction"]["full"] = open(abspath("instructions")).read()
 
 def log(*s):
+    print "======="
     if s == ("event","changeroute","AJ"):
-        print "Rarity scarcely avoids a rock slide! That rocks lands elsewhere in the labyrinth. They now block Applejack's path so she must find a way around them."
+        print "Rarity scarcely avoids a rock slide! That boulder lands elsewhere in the labyrinth. It now blocks Applejack's path so she must find a way around them."
     elif s[:3] == ("event","special","TS"):
         print "Twilight boosts %s's Willpower by 1 more!" % SHORTTOLONG[s[3]]
     elif s[:3] == ("event","special","FS"):
@@ -82,7 +88,10 @@ Fear +1"""
     elif s[0] == "land":
         pname = SHORTTOLONG[s[1]]
         ename = s[2].capitalize()+" "+"+"*(s[3]>0)+str(s[3])
-        allft = flavtext[pname][ename] + flavtext["<Pony>"][ename]
+        if pname == "Rarity" and ename == "Willpower +1":
+            allft = flavtext[pname][ename]
+        else:
+            allft = flavtext[pname][ename] + flavtext["<Pony>"][ename]
         if DEBUG:
             print "DEBUG:",allft
         print random.choice(allft).replace("<Pony>",pname)

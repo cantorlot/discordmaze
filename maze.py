@@ -79,7 +79,7 @@ class RockslideBlock(Block):
 
     def step(self,pony):
         if self.active:
-            self.trigger()
+            getattr(*self.trigger)()
             self.active = False
         return False
 
@@ -99,7 +99,7 @@ class EndBlock(Block):
         return True
 
     def land(self,pony):
-        self.arrive(pony)
+        getattr(*self.arrive)(pony)
 
     def __repr__(self):
         return "EE"
@@ -151,7 +151,7 @@ class Game(object):
     def setupgame(self,map):
         self.arrived = []
         for route in self.routes.values():
-            route[-1].arrive = self.ponyarrive
+            route[-1].arrive = (self,"ponyarrive")
         self.timers["global fear"] = GLOBALFEAR
         self.timers["discord"] = 1
         self.timers["rarity gems"] = 1
@@ -171,7 +171,7 @@ class Game(object):
         self.routes["AJ"][-25] = trapblock
         rockslideblock = RockslideBlock()
         self.routes["RA"][-14] = rockslideblock
-        rockslideblock.trigger = self.boulderfall
+        rockslideblock.trigger = (self,"boulderfall")
 
         grid = [[Wall() for cell in row] for row in map]
         self.grid = Grid(grid)
@@ -180,7 +180,7 @@ class Game(object):
                 self.grid[xy] = self.routes[name][i]
         xy = self.routexy["AJ"][-1]
         self.grid[xy] = EndBlock()
-        self.grid[xy].arrive = self.ponyarrive
+        self.grid[xy].arrive = (self,"ponyarrive")
 
     def maxdice(self):
         m = 5
@@ -206,10 +206,14 @@ class Game(object):
                 logger.debug("landing",ponyname,routexy[pony.routeloc+i])
                 route[pony.routeloc+i].land(pony)
                 #Hack
-                if not self.ponies["TS"].discorded and self.ponies["TS"].willpower >= 3:
-                    if route[pony.routeloc+i].attrib == "willpower" and route[pony.routeloc+i].diff == 1:
+                if "attrib" in route[pony.routeloc+i].__dict__ and route[pony.routeloc+i].attrib == "willpower" and route[pony.routeloc+i].diff == 1:
+                    if not self.ponies["TS"].discorded and self.ponies["TS"].willpower >= 3:
                         logger.log("event","special","TS",pony.name)
                         pony.willpower += 1
+                    if pony.name == "RA":
+                        for otherpony in self.ponies.values():
+                            if not otherpony.discorded and otherpony != pony:
+                                otherpony.fear += 1                        
                 pony.routeloc += i
                 break
             logger.debug("moving",ponyname,routexy[pony.routeloc+i])
@@ -229,7 +233,7 @@ class Game(object):
     def endturn(self):
         for tname in self.timers.keys():
             self.timers[tname] -= 1
-            if self.timers[tname] == 0:
+            if self.timers[tname] <= 0:
                 self.timereffect(tname)
         for pony in self.ponies.values():
             if pony.checkfear():
@@ -294,6 +298,8 @@ class Game(object):
             logger.log("error","not enough gems")
 
     def parsecommand(self,s):
+        if self.gameover:
+            return
         if s in ["i","I"]:
             logger.log("instruction","full")
             return
@@ -330,18 +336,24 @@ class Game(object):
             for i,xy in enumerate(self.routexy["AJ"]):
                 self.grid[xy] = self.routes["AJ"][i]
 
-    def __repr__(self):
+    def gridstr(self):
         gridrepr = repr(self.grid).split("\n")
         for name in PONYNAMES:
             xy = self.ponies[name].xy
             row = list(gridrepr[xy[0]])
             row[3*xy[1]:3*xy[1]+len(name)] = name
             gridrepr[xy[0]] = "".join(row)
-        gridpart = "\n".join(gridrepr)
-        ponypart = "Ponies:\n "+"\n ".join((map(repr,self.ponies.values())))
-        #ponypart = "Ponies:\n "+", ".join((map(repr,self.ponies.values())))
+        return "\n".join(gridrepr)
+
+    def effectstr(self):
         timers = [(k,v) for k,v in self.timers.items() if k not in ["rarity gems","discord"]]
         effectpart = "Active effects: turns before activation\n"+"\n".join(map(lambda x:" "+x[0]+":"+str(x[1]),timers))
+        return effectpart
+
+    def ponyeffectstr(self):
+        ponypart = "Ponies:\n "+"\n ".join((map(repr,self.ponies.values())))
+        #ponypart = "Ponies:\n "+", ".join((map(repr,self.ponies.values())))
+        effectpart = self.effectstr()
         ponylines = ponypart.split("\n")
         effectlines = effectpart.split("\n")
         numlines = max(len(ponylines),len(effectlines))
@@ -350,7 +362,15 @@ class Game(object):
             ponyline = ponylines[i] if i<len(ponylines) else ""
             effectline = effectlines[i] if i<len(effectlines) else ""
             ponyeffectpart += ponyline.ljust(20)+ effectline+"\n"
-        statspart = "dice:"+repr(self.dice)+" gems:"+repr(self.ponies["RA"].gems)+" maxspeed:"+repr(self.maxdice())
+        return ponyeffectpart
+
+    def statsstr(self):
+        return "dice:"+repr(self.dice)+" gems:"+repr(self.ponies["RA"].gems)+" maxspeed:"+repr(self.maxdice())
+
+    def __repr__(self):
+        gridpart = self.gridstr()
+        ponyeffectpart = self.ponyeffectstr()
+        statspart = self.statsstr()
         #return "\n".join([gridpart,ponypart,effectpart,statspart])
         return "\n".join([gridpart,ponyeffectpart,statspart])
 
@@ -431,7 +451,7 @@ def genroute(length,pname):
     return [Block()] + route + [EndBlock()]
 
 def setup():
-    map = open("map").read().split("\n")
+    map = open(logger.abspath("map")).read().split("\n")
     ponyxy = startend(map)
     routexy = dict((PONYNAMES[i],bfs(map,xy)) for i,xy in enumerate(ponyxy))
     ajroute1 = bfs(map,ponyxy[2],"b")
@@ -448,14 +468,14 @@ def setup():
     g=Game(map,ponies,routexy,routes,ponyxy)
     return g
 
-g = setup()
-
 def main():
+    g = setup()
     while not g.gameover:
         print repr(g)
         logger.log("instruction","command")
         cmd = raw_input("> ")
         g.parsecommand(cmd)
+    raw_input("Game ended. Press enter to exit.")
 
 if __name__=="__main__":
     main()
