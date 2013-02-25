@@ -7,7 +7,11 @@ Every turn a dice is thrown and a chosen pony moves forwards by that many steps.
 
 Try to get there fast. In the labyrinth, every 5 turns, everypony's Fear increases by 1. If at the end of a turn, Fear is at least 3 for anypony, the game ends.
 
+<<<<<<< HEAD:instructions
 Playing
+=======
+<a href="../">Play here</a>
+>>>>>>> 48ff70214509f1ea1eecb940a6546fa488ccc916:instructions
 ======================================
 Type "m " followed by the name of a pony to move that pony.  
 Type "c " followed by the name of a pony to use gems to calm that pony.  
@@ -72,4 +76,8 @@ Traps
 
 A pony landing on or walking (or bouncing) over an unactivated trap will fall into it, stop moving for this turn, gain 1 Fear and activate the trap. This also activates some other traps in the maze.
 
+<<<<<<< HEAD:instructions
 A pony will walk over an (already) activated trap with no effect. A pony landing on an activated trap gains 2 Fear.
+=======
+A pony will walk over an (already) activated trap with no effect. A pony landing on an activated trap gains 2 Fear.
+>>>>>>> 48ff70214509f1ea1eecb940a6546fa488ccc916:instructions
