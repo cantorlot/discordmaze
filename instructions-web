@@ -7,7 +7,7 @@ Every turn a dice is thrown and a chosen pony moves forwards by that many steps.
 
 Try to get there fast. In the labyrinth, every 5 turns, everypony's Fear increases by 1. If at the end of a turn, Fear is at least 3 for anypony, the game ends.
 
-Playing
+<a href="../">Play here</a>
 ======================================
 Type "m " followed by the name of a pony to move that pony.  
 Type "c " followed by the name of a pony to use gems to calm that pony.  
